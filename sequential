@@ -1,0 +1,97 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+
+#define N 10000  // number of data points
+#define D 2      // number of dimensions
+#define K 5      // number of clusters
+
+double data[N][D];        // data points
+double centroids[K][D];  // cluster centroids
+
+// Compute the Euclidean distance between two points
+double distance(double* p1, double* p2) {
+    double d = 0;
+    for (int i = 0; i < D; i++) {
+        d += pow(p1[i] - p2[i], 2);
+    }
+    return sqrt(d);
+}
+
+// Assign each data point to the nearest centroid
+void assign_points_to_clusters() {
+    for (int i = 0; i < N; i++) {
+        double min_distance = INFINITY;
+        int min_cluster = -1;
+        for (int j = 0; j < K; j++) {
+            double d = distance(data[i], centroids[j]);
+            if (d < min_distance) {
+                min_distance = d;
+                min_cluster = j;
+            }
+        }
+        // Assign data point to the nearest cluster
+        data[i][D] = min_cluster;
+    }
+}
+
+// Compute the centroid of each cluster
+void compute_centroids() {
+    // Initialize cluster sums to zero
+    double sums[K][D] = {0};
+    int counts[K] = {0};
+    
+    // Accumulate sums and counts for each cluster
+    for (int i = 0; i < N; i++) {
+        int cluster = (int)data[i][D];
+        for (int j = 0; j < D; j++) {
+            sums[cluster][j] += data[i][j];
+        }
+        counts[cluster]++;
+    }
+    
+    // Compute centroids for each cluster
+    for (int i = 0; i < K; i++) {
+        if (counts[i] > 0) {
+            for (int j = 0; j < D; j++) {
+                centroids[i][j] = sums[i][j] / counts[i];
+            }
+        }
+    }
+}
+
+// Run the K-Means algorithm
+void k_means() {
+    // Initialize centroids randomly
+    for (int i = 0; i < K; i++) {
+        for (int j = 0; j < D; j++) {
+            centroids[i][j] = (double)rand() / RAND_MAX;
+        }
+    }
+    
+    // Assign points to clusters and compute centroids iteratively
+    for (int iter = 0; iter < 100; iter++) {
+        assign_points_to_clusters();
+        compute_centroids();
+    }
+}
+
+int main() {
+    // Initialize data randomly
+    srand(time(NULL));
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < D; j++) {
+            data[i][j] = (double)rand() / RAND_MAX;
+        }
+    }
+
+    // Run the K-Means algorithm and print the execution time
+    clock_t start_time = clock();
+    k_means();
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    printf("Execution time: %f seconds\n", elapsed_time);
+    
+    return 0;
+}
